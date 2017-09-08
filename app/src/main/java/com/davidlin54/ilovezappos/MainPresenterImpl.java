@@ -1,5 +1,8 @@
 package com.davidlin54.ilovezappos;
 
+import android.os.Handler;
+import android.util.Log;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -15,96 +18,127 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class MainPresenterImpl implements MainPresenter {
-    private String API_BASE_URL = "https://www.bitstamp.net/api/v2/";
 
     private MainView mView;
-    private BitstampClient mClient;
 
+    private Handler mHandler = new Handler();
+
+    private Runnable mFetchDataRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                fetchTransactionHistory();
+                fetchOrderBook();
+                fetchTickerHour();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mHandler.postDelayed(mFetchDataRunnable, 60000);
+        }
+    };
 
     public MainPresenterImpl(MainView view) {
         this.mView = view;
-
-        OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-
-        Retrofit.Builder builder =
-                new Retrofit.Builder()
-                        .baseUrl(API_BASE_URL)
-                        .addConverterFactory(
-                                GsonConverterFactory.create()
-                        );
-
-        Retrofit retrofit =
-                builder
-                        .client(
-                                httpClient.build()
-                        )
-                        .build();
-
-        mClient = retrofit.create(BitstampClient.class);
     }
 
-    private Thread networkThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            while(true) {
-                List<Transaction> transactions = null;
-                OrderBook orderBook = null;
-                TickerHour tickerHour = null;
-                // fetch trans history
-                try {
-                    transactions = fetchTransactionHistory();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // fetch order book
-                try {
-                    orderBook = fetchOrderBook();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // fetch ticker hour
-                try {
-                    tickerHour = fetchTickerHour();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                // update view
-                mView.updateData(transactions, orderBook, tickerHour);
-
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    break;
-                }
+    private void fetchTransactionHistory() throws IOException {
+        Call<List<Transaction>> call = ILoveZapposApplication.mClient.transactions();
+        call.enqueue(new Callback<List<Transaction>>() {
+            @Override
+            public void onResponse(Call<List<Transaction>> call, Response<List<Transaction>> response) {
+                List<Transaction> transactions = response.body();
+                mView.updateTransactionHistory(transactions);
             }
-        }
-    });
 
-    private List<Transaction> fetchTransactionHistory() throws IOException {
-        Call<List<Transaction>> call = mClient.transactions();
-        return call.execute().body();
+            @Override
+            public void onFailure(Call<List<Transaction>> call, Throwable t) {
+
+            }
+        });
     }
 
-    private OrderBook fetchOrderBook() throws IOException {
-        Call<OrderBook> call = mClient.order_book();
-        return call.execute().body();
+    private void fetchOrderBook() throws IOException {
+        Call<OrderBook> call = ILoveZapposApplication.mClient.order_book();
+        call.enqueue(new Callback<OrderBook>() {
+            @Override
+            public void onResponse(Call<OrderBook> call, Response<OrderBook> response) {
+                OrderBook orderBook = response.body();
+                mView.updateOrderBook(orderBook);
+            }
+
+            @Override
+            public void onFailure(Call<OrderBook> call, Throwable t) {
+
+            }
+        });
     }
 
-    private TickerHour fetchTickerHour() throws IOException {
-        Call<TickerHour> call = mClient.ticker_hour();
-        return call.execute().body();
+    private void fetchTickerHour() throws IOException {
+        Call<TickerHour> call = ILoveZapposApplication.mClient.ticker_hour();
+        call.enqueue(new Callback<TickerHour>() {
+            @Override
+            public void onResponse(Call<TickerHour> call, Response<TickerHour> response) {
+                TickerHour tickerHour = response.body();
+                mView.updateTickerHour(tickerHour);
+            }
+
+            @Override
+            public void onFailure(Call<TickerHour> call, Throwable t) {
+
+            }
+        });
     }
 
     @Override
     public void startFetchingData() {
-        networkThread.start();
+        stopFetchingData();
+        mFetchDataRunnable.run();
     }
 
     @Override
     public void stopFetchingData() {
-        networkThread.interrupt();
+        mHandler.removeCallbacks(mFetchDataRunnable);
     }
+
+    /*
+    private class DataFetchThread extends Thread {
+
+        public DataFetchThread() {
+            this(new Runnable() {
+                @Override
+                public void run() {
+                    List<Transaction> transactions = null;
+                    OrderBook orderBook = null;
+                    TickerHour tickerHour = null;
+                    // fetch trans history
+                    try {
+                        transactions = fetchTransactionHistory();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // fetch order book
+                    try {
+                        orderBook = fetchOrderBook();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // fetch ticker hour
+                    try {
+                        tickerHour = fetchTickerHour();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    // update view
+                    mView.updateData(transactions, orderBook, tickerHour);
+                }
+            });
+        }
+
+        public DataFetchThread(Runnable runnable) {
+            super(runnable);
+        }
+    }*/
 }

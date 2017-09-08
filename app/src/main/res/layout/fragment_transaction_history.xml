@@ -1,9 +1,8 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.davidlin54.ilovezappos.TransactionHistoryFragment"
-    android:orientation="vertical">
+    tools:context="com.davidlin54.ilovezappos.TransactionHistoryFragment">
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"
@@ -12,4 +11,4 @@
         android:paddingTop="5dp"
         android:paddingBottom="5dp"/>
 
-</LinearLayout>
+</FrameLayout>

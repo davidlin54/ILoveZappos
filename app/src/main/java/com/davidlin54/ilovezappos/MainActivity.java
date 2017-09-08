@@ -1,5 +1,6 @@
 package com.davidlin54.ilovezappos;
 
+import android.content.res.Configuration;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -7,6 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,14 +55,18 @@ public class MainActivity extends AppCompatActivity implements MainView{
     }
 
     @Override
-    public void updateData(final List<Transaction> transactions, final OrderBook orderBook, final TickerHour tickerHour) {
-        if (transactions != null) runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mTransactionHistoryFragment.updateTransactionHistory(transactions);
-            }
-        });
-        if (orderBook != null) mOrderBookFragment.updateOrderBook(orderBook);
+    public void updateTransactionHistory(List<Transaction> transactions) {
+        mTransactionHistoryFragment.updateTransactionHistory(transactions);
+    }
+
+    @Override
+    public void updateOrderBook(OrderBook orderBook) {
+        mOrderBookFragment.updateOrderBook(orderBook);
+    }
+
+    @Override
+    public void updateTickerHour(TickerHour tickerHour) {
+        mPriceAlertFragment.updateCurrentPrice(tickerHour);
     }
 
     private class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -89,6 +95,13 @@ public class MainActivity extends AppCompatActivity implements MainView{
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentsTitles.get(position);
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Fragment fragment = (Fragment) super.instantiateItem(container, position);
+            mFragments.set(position, fragment);
+            return fragment;
         }
     }
 }

@@ -2,6 +2,7 @@ package com.davidlin54.ilovezappos;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -32,6 +34,7 @@ public class TransactionHistoryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @Override
@@ -96,7 +99,6 @@ public class TransactionHistoryFragment extends Fragment {
         if (mLineChart == null) {
             return;
         }
-
         mEntries.clear();
 
         for (int i = transactions.size() - 1; i >= 0; i--) {
@@ -108,7 +110,7 @@ public class TransactionHistoryFragment extends Fragment {
     }
 
     private String convertUnixToTime(long date) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-        return simpleDateFormat.format(date);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("h:mm:ss a", Locale.getDefault());
+        return simpleDateFormat.format(date * 1000);
     }
 }

@@ -7,5 +7,7 @@ import java.util.List;
  */
 
 public interface MainView {
-    void updateData(List<Transaction> transactions, OrderBook orderBook, TickerHour tickerHour);
+    void updateTransactionHistory(List<Transaction> transactions);
+    void updateOrderBook(OrderBook orderBook);
+    void updateTickerHour(TickerHour tickerHour);
 }
